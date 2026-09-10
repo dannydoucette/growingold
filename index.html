@@ -550,7 +550,7 @@ async function fetchFromFile() {
   const lines = text.split(/\r\n|\r|\n/).filter(line => line.trim().length > 0);
   if (!lines.length) throw new Error("data.txt is empty");
 
-  const cols = lines[0].split("\t").map(c => c.trim().toLowerCase());
+  const cols = lines[0].split("|").map(c => c.trim().toLowerCase());
   const idx = (label) => cols.findIndex(c => c === label);
 
   const nameIdx = idx("name");
@@ -567,7 +567,7 @@ async function fetchFromFile() {
   return lines
     .slice(1)
     .map(line => {
-      const fields = line.split("\t");
+      const fields = line.split("|");
       const cell = (i) => (i >= 0 && fields[i] !== undefined ? fields[i].trim() : "");
 
       const name = cell(nameIdx);
