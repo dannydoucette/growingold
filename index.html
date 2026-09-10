@@ -90,8 +90,9 @@ a:hover { color: var(--moss); }
   width: 100%;
 }
 
-/* Leaflet popups themed as wide, short preview cards
-   (photo on the left, text on the right, rather than stacked) */
+/* Leaflet popups themed as preview cards: photo on top, generous
+   text room below, standard Leaflet positioning so the tip always
+   points exactly at the marker. */
 .leaflet-popup-content-wrapper {
   border-radius: var(--radius);
   font-family: Arial, Helvetica, sans-serif;
@@ -102,53 +103,42 @@ a:hover { color: var(--moss); }
   margin: 0;
   width: 100% !important;
 }
-.leaflet-popup-tip-container { margin-top: -1px; }
 
-.popup-card {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  height: 104px;
-}
+.popup-card { display: flex; flex-direction: column; }
 .popup-card img {
   display: block;
-  width: 100px;
-  height: 100%;
+  width: 100%;
+  height: 130px;
   object-fit: cover;
-  flex-shrink: 0;
 }
 .popup-body {
-  flex: 1;
-  min-width: 0;
-  padding: 10px 12px;
+  padding: 12px 14px 14px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 3px;
+  gap: 6px;
 }
 .popup-name {
   font-weight: bold;
-  font-size: 0.95rem;
-  line-height: 1.15;
+  font-size: 1.05rem;
+  line-height: 1.2;
   margin: 0;
   color: var(--pine);
 }
 .popup-snippet {
   margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.3;
+  font-size: 0.88rem;
+  line-height: 1.4;
   color: var(--ink-soft);
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .popup-link {
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   font-weight: bold;
   color: var(--moss);
   text-decoration: none;
-  margin-top: 1px;
 }
 .popup-link:hover { color: var(--pine); }
 
@@ -406,7 +396,7 @@ footer {
   </section>
 
   <footer>
-    <p>Suggestions and corrections will be welcomed! <a href="mailto:danny.doucette@gmail.com">Get in touch</a>.</p>
+    <p>Know a forest that should be here? This map is maintained by hand &mdash; <a href="mailto:danny.doucette@gmail.com">get in touch</a> to suggest an addition.</p>
   </footer>
 </main>
 
@@ -553,10 +543,7 @@ function showLoadError(detail) {
 }
 
 async function fetchFromFile() {
-  // Cache-busting query param + no-store: without this, both the
-  // browser's own cache and GitHub Pages' CDN can keep serving an old
-  // copy of data.txt for a while after you've pushed an edit.
-  const res = await fetch(`${DATA_URL}?v=${Date.now()}`, { cache: "no-store" });
+  const res = await fetch(DATA_URL);
   if (!res.ok) throw new Error(`Network response was not ok (status ${res.status})`);
   const text = await res.text();
 
@@ -610,9 +597,6 @@ async function fetchFromFile() {
     .filter(Boolean);
 }
 
-const POPUP_WIDTH = 320;
-const POPUP_HEIGHT = 116; // card height (104px) + tip + a little breathing room
-
 function renderMarkers(forests) {
   forests.forEach((forest, i) => {
     const icon = L.divIcon({
@@ -621,61 +605,20 @@ function renderMarkers(forests) {
       iconSize: [16, 16]
     });
     const marker = L.marker([forest.lat, forest.lng], { icon }).addTo(map);
-    marker.on("click", () => openForestPopup(marker, forest, i));
+    marker.bindPopup(buildPopupCard(forest, i), {
+      maxWidth: 300,
+      minWidth: 280,
+      className: "forest-popup"
+    });
+    marker.on("popupopen", () => {
+      const link = document.querySelector(`[data-open="${i}"]`);
+      if (link) link.addEventListener("click", (e) => {
+        e.preventDefault();
+        openDetail(forest);
+      });
+    });
     markers[i] = marker;
   });
-}
-
-// Opens a forest's popup with an offset nudged toward the center of the
-// visible map, so the popup stays on-screen without the map itself
-// panning underneath it (autoPan is disabled below).
-function openForestPopup(marker, forest, i) {
-  const offset = computeCenteringOffset(marker.getLatLng());
-
-  const popup = L.popup({
-    offset,
-    autoPan: false,
-    maxWidth: POPUP_WIDTH,
-    minWidth: POPUP_WIDTH,
-    className: "forest-popup"
-  })
-    .setLatLng(marker.getLatLng())
-    .setContent(buildPopupCard(forest, i))
-    .openOn(map);
-
-  const link = popup.getElement().querySelector(`[data-open="${i}"]`);
-  if (link) link.addEventListener("click", (e) => {
-    e.preventDefault();
-    openDetail(forest);
-  });
-}
-
-// Leaflet popups always render directly above their anchor point. If a
-// marker sits near the top, left, or right edge of the visible map, this
-// nudges the anchor point inward (toward the map's center) by just
-// enough that the popup box fits within the container.
-function computeCenteringOffset(latlng) {
-  const margin = 14;
-  const size = map.getSize();
-  const pt = map.latLngToContainerPoint(latlng);
-  const halfWidth = POPUP_WIDTH / 2;
-
-  let offsetY = -12; // small default gap between marker and popup tip
-  const neededY = margin - pt.y + POPUP_HEIGHT;
-  if (neededY > offsetY) {
-    offsetY = Math.min(neededY, size.y * 0.45);
-  }
-
-  let offsetX = 0;
-  const neededRight = margin - pt.x + halfWidth;
-  const neededLeft = (size.x - margin) - pt.x - halfWidth;
-  if (neededRight > 0) {
-    offsetX = Math.min(neededRight, size.x * 0.4);
-  } else if (neededLeft < 0) {
-    offsetX = Math.max(neededLeft, -size.x * 0.4);
-  }
-
-  return [offsetX, offsetY];
 }
 
 function buildPopupCard(forest, i) {
@@ -684,7 +627,7 @@ function buildPopupCard(forest, i) {
       ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" onerror="this.remove()">` : ""}
       <div class="popup-body">
         <p class="popup-name">${escapeHtml(forest.name)}</p>
-        <p class="popup-snippet">${escapeHtml(truncate(forest.description, 110))}</p>
+        <p class="popup-snippet">${escapeHtml(truncate(forest.description, 220))}</p>
         <a class="popup-link" href="#" data-open="${i}">View details &rarr;</a>
       </div>
     </div>`;
@@ -721,7 +664,7 @@ function renderList(forests) {
     card.addEventListener("click", () => {
       openDetail(forest);
       map.flyTo([forest.lat, forest.lng], 11, { duration: 0.6 });
-      map.once("moveend", () => openForestPopup(markers[i], forest, i));
+      map.once("moveend", () => markers[i].openPopup());
     });
     list.appendChild(card);
   });
