@@ -606,8 +606,8 @@ function renderMarkers(forests) {
     });
     const marker = L.marker([forest.lat, forest.lng], { icon }).addTo(map);
     marker.bindPopup(buildPopupCard(forest, i), {
-      maxWidth: 300,
-      minWidth: 280,
+      maxWidth: 400,
+      minWidth: 300,
       className: "forest-popup"
     });
     marker.on("popupopen", () => {
