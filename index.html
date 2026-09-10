@@ -367,45 +367,21 @@ footer {
 <script>
 /* ============================================================
    Old-growth forests of Nova Scotia
-   Content is pulled live from a public Google Sheet, so the
-   site updates whenever the sheet is edited -- no code changes
-   or redeploys needed.
+   Content is pulled from data.txt, a plain tab-separated text
+   file sitting next to this page. Edit that file by hand (any
+   text editor works) and refresh the page -- no code changes.
 
-   To point this at your own sheet:
-   1. File > Share > "Anyone with the link" > Viewer
-   2. Copy the ID out of the sheet's URL (the long string between
-      /d/ and /edit) and paste it below as SHEET_ID.
-   3. Keep the header row exactly as: Name, Lat, Long, Description,
-      Learn more, Directions, Image paths
-   4. Put photos in the images/ folder, named to match the
-      "Image paths" column exactly.
+   data.txt format:
+   1. First line is the header row, exactly:
+      Name	Lat, Long	Description	Learn more	Directions	Image paths
+      (columns separated by real tab characters, not spaces)
+   2. One forest per line after that, same column order.
+   3. Lat, Long is one field, comma-separated, e.g. 44.442232, -65.253328
+   4. Image paths is just the filename, matching a photo you've put
+      in the images/ folder.
    ============================================================ */
 
-const SHEET_ID = "1jWrnIq3_uaORL5kGqPzDA0o64-Zkw5B9H3UdG81biKE";
-const SHEET_NAME = "Sheet1";
-const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
-
-// Used only if the live sheet can't be reached (e.g. previewing offline).
-const FALLBACK_FORESTS = [
-  {
-    name: "Hemlocks and Hardwoods",
-    lat: 44.442232,
-    lng: -65.253328,
-    description: "This 5-km loop takes you to a true old-growth hemlock grove, with a boardwalk path to protect undergrowth in the grove. The trees and the air feel heavy here, and there is a sense of magic when the trail turns a corner and opens up into a region, perhaps no more than an hectare in size, dominated by towering, centuries-old hemlocks.",
-    learnMore: "https://novascotia.com/listing/hemlocks-and-hardwoods-trail-kejimkujik-national-park-and-national-historic-site/",
-    directions: "Located inside Kejimkujik national park, follow the signs to the Big Dam parking lot. From there, follow the Hemlocks and Hardwoods trail, which features interpretive signs about the woods you walk through. The old-growth hemlock grove is at about 2.5 km from the parking lot.",
-    image: "images/hemlocks-and-hardwoods.jpg"
-  },
-  {
-    name: "The Lone Shieling",
-    lat: 46.809853,
-    lng: -60.733382,
-    description: "Located just off the road along the Cabot Trail in the Cape Breton Highlands national park is a short trail through a true old-growth hardwood (mostly sugar maple) forest. This is the only part of the Grande Anse Valley -- Nova Scotia's largest unlogged forest -- that can be accessed legally. It is a beautiful trail with high canopies, following along the meandering Grande Anse river. Truly a special place.",
-    learnMore: "https://parks.canada.ca/pn-np/ns/cbreton/activ/randonnee-hiking/loneshieling",
-    directions: "Located inside the Cape Breton Highlands national park. Look for the Lone Sheiling parking lot a few kilometers east of Pleasant Bay.",
-    image: "images/lone-shieling.jpg"
-  }
-];
+const DATA_URL = "data.txt";
 
 let map, markers = {};
 
@@ -424,34 +400,51 @@ function initMap() {
   map = L.map("map", { scrollWheelZoom: false }).setView([45.0, -63.0], 7);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 18
+    maxZoom: 19
   }).addTo(map);
 }
 
 async function loadForests() {
   let forests;
   try {
-    forests = await fetchFromSheet();
-    if (!forests.length) throw new Error("Sheet returned no rows");
+    forests = await fetchFromFile();
   } catch (err) {
-    console.warn("Falling back to built-in forest data:", err);
-    forests = FALLBACK_FORESTS;
+    console.error("Could not load forests from data.txt:", err);
+    showLoadError(err.message);
+    return;
+  }
+  if (!forests.length) {
+    showLoadError("data.txt was reached, but no valid rows were found. Check that the header row matches exactly: Name, Lat, Long, Description, Learn more, Directions, Image paths (tab-separated).");
+    return;
   }
   renderMarkers(forests);
   renderList(forests);
 }
 
-async function fetchFromSheet() {
-  const res = await fetch(GVIZ_URL);
-  if (!res.ok) throw new Error("Network response was not ok");
+function showLoadError(detail) {
+  const list = document.getElementById("forest-list");
+  const count = document.getElementById("list-count");
+  count.textContent = "";
+  list.innerHTML = `
+    <p class="error">
+      Couldn't load forest data from data.txt.<br>
+      ${escapeHtml(detail)}<br><br>
+      Common causes: data.txt isn't sitting in the same folder as
+      this page, a row is missing tabs between columns, or the
+      header row doesn't match exactly. Check the browser console
+      for more detail.
+    </p>`;
+}
+
+async function fetchFromFile() {
+  const res = await fetch(DATA_URL);
+  if (!res.ok) throw new Error(`Network response was not ok (status ${res.status})`);
   const text = await res.text();
 
-  // Response is wrapped like: google.visualization.Query.setResponse({...});
-  const match = text.match(/setResponse\(([\s\S]+)\);?\s*$/);
-  if (!match) throw new Error("Unexpected sheet response format");
-  const json = JSON.parse(match[1]);
+  const lines = text.split(/\r\n|\r|\n/).filter(line => line.trim().length > 0);
+  if (!lines.length) throw new Error("data.txt is empty");
 
-  const cols = json.table.cols.map(c => (c.label || "").trim().toLowerCase());
+  const cols = lines[0].split("\t").map(c => c.trim().toLowerCase());
   const idx = (label) => cols.findIndex(c => c === label);
 
   const nameIdx = idx("name");
@@ -461,14 +454,21 @@ async function fetchFromSheet() {
   const dirIdx = idx("directions");
   const imgIdx = idx("image paths");
 
-  return json.table.rows
-    .map(row => {
-      const cell = (i) => (i >= 0 && row.c[i] ? row.c[i].v : "") || "";
+  if (nameIdx === -1 || latLngIdx === -1) {
+    throw new Error("Header row is missing expected columns (Name, Lat, Long, ...). Check tabs weren't converted to spaces.");
+  }
+
+  return lines
+    .slice(1)
+    .map(line => {
+      const fields = line.split("\t");
+      const cell = (i) => (i >= 0 && fields[i] !== undefined ? fields[i].trim() : "");
+
       const name = cell(nameIdx);
       if (!name) return null;
 
       const latLngRaw = cell(latLngIdx);
-      const [latStr, lngStr] = String(latLngRaw).split(",").map(s => s.trim());
+      const [latStr, lngStr] = latLngRaw.split(",").map(s => s.trim());
       const lat = parseFloat(latStr);
       const lng = parseFloat(lngStr);
       if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
@@ -530,7 +530,7 @@ function renderList(forests) {
     card.className = "forest-card";
     card.type = "button";
     card.innerHTML = `
-      ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" loading="lazy">` : ""}
+      ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" loading="lazy" onerror="this.remove()">` : ""}
       <h3>${escapeHtml(forest.name)}</h3>
       <p>${escapeHtml(forest.description)}</p>
       <span class="card-link">View details &amp; directions &rarr;</span>
@@ -549,7 +549,7 @@ function openDetail(forest) {
   const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${forest.lat},${forest.lng}`;
 
   content.innerHTML = `
-    ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}">` : ""}
+    ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" onerror="this.remove()">` : ""}
     <h2>${escapeHtml(forest.name)}</h2>
     <p>${escapeHtml(forest.description)}</p>
     ${forest.directions ? `<h4>Getting there</h4><p>${escapeHtml(forest.directions)}</p>` : ""}
