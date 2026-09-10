@@ -624,7 +624,6 @@ function renderMarkers(forests) {
 function buildPopupCard(forest, i) {
   return `
     <div class="popup-card">
-      ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" onerror="this.remove()">` : ""}
       <div class="popup-body">
         <p class="popup-name">${escapeHtml(forest.name)}</p>
         <p class="popup-snippet">${escapeHtml(truncate(forest.description, 220))}</p>
