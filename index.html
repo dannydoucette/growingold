@@ -101,7 +101,6 @@ a:hover { color: var(--moss); }
 }
 .leaflet-popup-content {
   margin: 0;
-  width: 100% !important;
 }
 
 .popup-card { display: flex; flex-direction: column; }
@@ -550,7 +549,7 @@ async function fetchFromFile() {
   const lines = text.split(/\r\n|\r|\n/).filter(line => line.trim().length > 0);
   if (!lines.length) throw new Error("data.txt is empty");
 
-  const cols = lines[0].split("|").map(c => c.trim().toLowerCase());
+  const cols = lines[0].split("\t").map(c => c.trim().toLowerCase());
   const idx = (label) => cols.findIndex(c => c === label);
 
   const nameIdx = idx("name");
@@ -567,7 +566,7 @@ async function fetchFromFile() {
   return lines
     .slice(1)
     .map(line => {
-      const fields = line.split("|");
+      const fields = line.split("\t");
       const cell = (i) => (i >= 0 && fields[i] !== undefined ? fields[i].trim() : "");
 
       const name = cell(nameIdx);
@@ -606,8 +605,8 @@ function renderMarkers(forests) {
     });
     const marker = L.marker([forest.lat, forest.lng], { icon }).addTo(map);
     marker.bindPopup(buildPopupCard(forest, i), {
-      maxWidth: 400,
-      minWidth: 300,
+      maxWidth: 380,
+      minWidth: 340,
       className: "forest-popup"
     });
     marker.on("popupopen", () => {
@@ -624,8 +623,10 @@ function renderMarkers(forests) {
 function buildPopupCard(forest, i) {
   return `
     <div class="popup-card">
+      ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" onerror="this.remove()">` : ""}
       <div class="popup-body">
         <p class="popup-name">${escapeHtml(forest.name)}</p>
+        <p class="popup-snippet">${escapeHtml(truncate(forest.description, 220))}</p>
         <a class="popup-link" href="#" data-open="${i}">View details &rarr;</a>
       </div>
     </div>`;
