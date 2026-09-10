@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Old-growth forests of Nova Scotia</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+:root {
+  --pine: #1F3A2E;
+  --pine-dark: #142720;
+  --moss: #4C7A5E;
+  --moss-light: #A9C4B2;
+  --bark: #5B4632;
+  --paper: #F1F3EC;
+  --paper-raised: #FFFFFF;
+  --gold: #B99B4E;
+  --ink: #2B2A26;
+  --ink-soft: #5C5A53;
+  --line: #D7DACE;
+
+  --radius: 3px;
+  --shadow: 0 2px 10px rgba(20, 39, 32, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+
+h1, h2, h3 { font-family: Arial, Helvetica, sans-serif; margin: 0; }
+
+a { color: var(--pine); }
+a:hover { color: var(--moss); }
+
+.muted { color: var(--ink-soft); }
+
+/* ---------- Hero ---------- */
+
+.hero {
+  position: relative;
+  min-height: 40vh;
+  display: flex;
+  align-items: flex-end;
+  background-image: url('images/hemlocks-and-hardwoods.jpg');
+  background-size: cover;
+  background-position: center 65%;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20,39,32,0.15) 0%, rgba(20,39,32,0.85) 100%);
+}
+
+.hero-content {
+  position: relative;
+  color: #fff;
+  padding: 32px clamp(20px, 5vw, 64px) 36px;
+  max-width: 640px;
+}
+
+.hero-content h1 {
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.hero-content p {
+  font-size: 1.05rem;
+  color: #E9ECE4;
+  margin: 0;
+}
+
+/* ---------- Map ---------- */
+
+#map-section {
+  padding: 0;
+}
+
+#map {
+  height: 62vh;
+  min-height: 380px;
+  width: 100%;
+}
+
+/* Leaflet popups themed */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius);
+  font-family: Arial, Helvetica, sans-serif;
+}
+.leaflet-popup-content { margin: 12px 14px; }
+.popup-name { font-weight: bold; margin: 0 0 4px; color: var(--pine); }
+.popup-link { font-size: 0.9rem; }
+
+.forest-marker {
+  background: var(--pine);
+  border: 2px solid #fff;
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.forest-marker.is-active {
+  background: var(--gold);
+}
+
+/* ---------- List ---------- */
+
+#list-section {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 40px clamp(20px, 5vw, 48px) 20px;
+}
+
+.list-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  border-bottom: 2px solid var(--pine);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.list-header h2 {
+  font-size: 1.4rem;
+  color: var(--pine);
+}
+
+.forest-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.forest-card {
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--moss);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.forest-card:hover,
+.forest-card:focus-visible {
+  border-left-color: var(--gold);
+  box-shadow: var(--shadow);
+  outline: none;
+}
+
+.forest-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+.forest-card h3 {
+  font-size: 1.1rem;
+  color: var(--pine);
+}
+
+.forest-card p {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-link {
+  font-size: 0.88rem;
+  font-weight: bold;
+  color: var(--moss);
+}
+
+.loading, .error {
+  color: var(--ink-soft);
+  font-style: italic;
+}
+
+/* ---------- Detail panel ---------- */
+
+#detail-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 39, 32, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 900;
+}
+
+#detail-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(420px, 100%);
+  background: var(--paper-raised);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.2);
+  transform: translateX(100%);
+  transition: transform 0.25s ease;
+  z-index: 901;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+body.detail-open #detail-scrim {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+body.detail-open #detail-panel {
+  transform: translateX(0);
+}
+
+#detail-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: var(--pine);
+  color: #fff;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#detail-content img {
+  width: 100%;
+  border-radius: var(--radius);
+  margin: 40px 0 16px;
+}
+
+#detail-content h2 {
+  color: var(--pine);
+  font-size: 1.5rem;
+  margin-bottom: 6px;
+}
+
+#detail-content h4 {
+  margin: 20px 0 6px;
+  color: var(--bark);
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 4px;
+}
+
+#detail-content p { margin: 0 0 4px; }
+
+.detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  display: inline-block;
+  background: var(--pine);
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+.btn:hover { background: var(--moss); color: #fff; }
+
+.btn.secondary {
+  background: transparent;
+  color: var(--pine);
+  border: 1px solid var(--pine);
+}
+.btn.secondary:hover { border-color: var(--moss); color: var(--moss); }
+
+footer {
+  max-width: 1080px;
+  margin: 20px auto 50px;
+  padding: 20px clamp(20px, 5vw, 48px) 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+/* ---------- Mobile ---------- */
+
+@media (max-width: 640px) {
+  #map { height: 48vh; min-height: 300px; }
+
+  #detail-panel {
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: 85vh;
+    width: 100%;
+    border-radius: 14px 14px 0 0;
+    transform: translateY(100%);
+  }
+  body.detail-open #detail-panel { transform: translateY(0); }
+
+  .forest-list { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #detail-panel, #detail-scrim, .forest-card { transition: none; }
+}
+
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>Old-growth forests of Nova Scotia</h1>
+    <p>A field guide to the province's last unlogged forests &mdash; where to find them, what grows there, and how to visit with care.</p>
+  </div>
+</header>
+
+<main>
+  <section id="map-section">
+    <div id="map"></div>
+  </section>
+
+  <section id="list-section">
+    <div class="list-header">
+      <h2>All forests</h2>
+      <p id="list-count" class="muted"></p>
+    </div>
+    <div id="forest-list" class="forest-list">
+      <p class="loading">Loading forests&hellip;</p>
+    </div>
+  </section>
+
+  <footer>
+    <p>Know a forest that should be here? This map is maintained by hand &mdash; get in touch to suggest an addition.</p>
+  </footer>
+</main>
+
+<div id="detail-scrim"></div>
+<aside id="detail-panel" aria-hidden="true">
+  <button id="detail-close" aria-label="Close">&times;</button>
+  <div id="detail-content"></div>
+</aside>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+/* ============================================================
+   Old-growth forests of Nova Scotia
+   Content is pulled live from a public Google Sheet, so the
+   site updates whenever the sheet is edited -- no code changes
+   or redeploys needed.
+
+   To point this at your own sheet:
+   1. File > Share > "Anyone with the link" > Viewer
+   2. Copy the ID out of the sheet's URL (the long string between
+      /d/ and /edit) and paste it below as SHEET_ID.
+   3. Keep the header row exactly as: Name, Lat, Long, Description,
+      Learn more, Directions, Image paths
+   4. Put photos in the images/ folder, named to match the
+      "Image paths" column exactly.
+   ============================================================ */
+
+const SHEET_ID = "1jWrnIq3_uaORL5kGqPzDA0o64-Zkw5B9H3UdG81biKE";
+const SHEET_NAME = "Sheet1";
+const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(SHEET_NAME)}`;
+
+// Used only if the live sheet can't be reached (e.g. previewing offline).
+const FALLBACK_FORESTS = [
+  {
+    name: "Hemlocks and Hardwoods",
+    lat: 44.442232,
+    lng: -65.253328,
+    description: "This 5-km loop takes you to a true old-growth hemlock grove, with a boardwalk path to protect undergrowth in the grove. The trees and the air feel heavy here, and there is a sense of magic when the trail turns a corner and opens up into a region, perhaps no more than an hectare in size, dominated by towering, centuries-old hemlocks.",
+    learnMore: "https://novascotia.com/listing/hemlocks-and-hardwoods-trail-kejimkujik-national-park-and-national-historic-site/",
+    directions: "Located inside Kejimkujik national park, follow the signs to the Big Dam parking lot. From there, follow the Hemlocks and Hardwoods trail, which features interpretive signs about the woods you walk through. The old-growth hemlock grove is at about 2.5 km from the parking lot.",
+    image: "images/hemlocks-and-hardwoods.jpg"
+  },
+  {
+    name: "The Lone Shieling",
+    lat: 46.809853,
+    lng: -60.733382,
+    description: "Located just off the road along the Cabot Trail in the Cape Breton Highlands national park is a short trail through a true old-growth hardwood (mostly sugar maple) forest. This is the only part of the Grande Anse Valley -- Nova Scotia's largest unlogged forest -- that can be accessed legally. It is a beautiful trail with high canopies, following along the meandering Grande Anse river. Truly a special place.",
+    learnMore: "https://parks.canada.ca/pn-np/ns/cbreton/activ/randonnee-hiking/loneshieling",
+    directions: "Located inside the Cape Breton Highlands national park. Look for the Lone Sheiling parking lot a few kilometers east of Pleasant Bay.",
+    image: "images/lone-shieling.jpg"
+  }
+];
+
+let map, markers = {};
+
+document.addEventListener("DOMContentLoaded", () => {
+  initMap();
+  loadForests();
+
+  document.getElementById("detail-close").addEventListener("click", closeDetail);
+  document.getElementById("detail-scrim").addEventListener("click", closeDetail);
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDetail();
+  });
+});
+
+function initMap() {
+  map = L.map("map", { scrollWheelZoom: false }).setView([45.0, -63.0], 7);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 18
+  }).addTo(map);
+}
+
+async function loadForests() {
+  let forests;
+  try {
+    forests = await fetchFromSheet();
+    if (!forests.length) throw new Error("Sheet returned no rows");
+  } catch (err) {
+    console.warn("Falling back to built-in forest data:", err);
+    forests = FALLBACK_FORESTS;
+  }
+  renderMarkers(forests);
+  renderList(forests);
+}
+
+async function fetchFromSheet() {
+  const res = await fetch(GVIZ_URL);
+  if (!res.ok) throw new Error("Network response was not ok");
+  const text = await res.text();
+
+  // Response is wrapped like: google.visualization.Query.setResponse({...});
+  const match = text.match(/setResponse\(([\s\S]+)\);?\s*$/);
+  if (!match) throw new Error("Unexpected sheet response format");
+  const json = JSON.parse(match[1]);
+
+  const cols = json.table.cols.map(c => (c.label || "").trim().toLowerCase());
+  const idx = (label) => cols.findIndex(c => c === label);
+
+  const nameIdx = idx("name");
+  const latLngIdx = idx("lat, long");
+  const descIdx = idx("description");
+  const learnIdx = idx("learn more");
+  const dirIdx = idx("directions");
+  const imgIdx = idx("image paths");
+
+  return json.table.rows
+    .map(row => {
+      const cell = (i) => (i >= 0 && row.c[i] ? row.c[i].v : "") || "";
+      const name = cell(nameIdx);
+      if (!name) return null;
+
+      const latLngRaw = cell(latLngIdx);
+      const [latStr, lngStr] = String(latLngRaw).split(",").map(s => s.trim());
+      const lat = parseFloat(latStr);
+      const lng = parseFloat(lngStr);
+      if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+
+      const imagePath = cell(imgIdx);
+      const image = imagePath
+        ? (imagePath.startsWith("http") ? imagePath : `images/${imagePath}`)
+        : "";
+
+      return {
+        name,
+        lat,
+        lng,
+        description: cell(descIdx),
+        learnMore: cell(learnIdx),
+        directions: cell(dirIdx),
+        image
+      };
+    })
+    .filter(Boolean);
+}
+
+function renderMarkers(forests) {
+  forests.forEach((forest, i) => {
+    const icon = L.divIcon({
+      className: "",
+      html: '<div class="forest-marker"></div>',
+      iconSize: [16, 16]
+    });
+    const marker = L.marker([forest.lat, forest.lng], { icon }).addTo(map);
+    marker.bindPopup(
+      `<p class="popup-name">${escapeHtml(forest.name)}</p>` +
+      `<a class="popup-link" href="#" data-open="${i}">View details</a>`
+    );
+    marker.on("popupopen", () => {
+      const link = document.querySelector(`[data-open="${i}"]`);
+      if (link) link.addEventListener("click", (e) => {
+        e.preventDefault();
+        openDetail(forest);
+      });
+    });
+    markers[i] = marker;
+  });
+}
+
+function renderList(forests) {
+  const list = document.getElementById("forest-list");
+  const count = document.getElementById("list-count");
+  count.textContent = `${forests.length} forest${forests.length === 1 ? "" : "s"}`;
+
+  if (!forests.length) {
+    list.innerHTML = '<p class="error">No forests found yet. Check back soon.</p>';
+    return;
+  }
+
+  list.innerHTML = "";
+  forests.forEach((forest, i) => {
+    const card = document.createElement("button");
+    card.className = "forest-card";
+    card.type = "button";
+    card.innerHTML = `
+      ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" loading="lazy">` : ""}
+      <h3>${escapeHtml(forest.name)}</h3>
+      <p>${escapeHtml(forest.description)}</p>
+      <span class="card-link">View details &amp; directions &rarr;</span>
+    `;
+    card.addEventListener("click", () => {
+      openDetail(forest);
+      map.flyTo([forest.lat, forest.lng], 11, { duration: 0.6 });
+      markers[i].openPopup();
+    });
+    list.appendChild(card);
+  });
+}
+
+function openDetail(forest) {
+  const content = document.getElementById("detail-content");
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${forest.lat},${forest.lng}`;
+
+  content.innerHTML = `
+    ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}">` : ""}
+    <h2>${escapeHtml(forest.name)}</h2>
+    <p>${escapeHtml(forest.description)}</p>
+    ${forest.directions ? `<h4>Getting there</h4><p>${escapeHtml(forest.directions)}</p>` : ""}
+    <div class="detail-actions">
+      <a class="btn" href="${mapsUrl}" target="_blank" rel="noopener">Get directions</a>
+      ${forest.learnMore ? `<a class="btn secondary" href="${escapeAttr(forest.learnMore)}" target="_blank" rel="noopener">Learn more</a>` : ""}
+    </div>
+  `;
+  document.body.classList.add("detail-open");
+  document.getElementById("detail-panel").setAttribute("aria-hidden", "false");
+}
+
+function closeDetail() {
+  document.body.classList.remove("detail-open");
+  document.getElementById("detail-panel").setAttribute("aria-hidden", "true");
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function escapeAttr(str) {
+  return String(str).replace(/"/g, "&quot;");
+}
+
+</script>
+</body>
+</html>
