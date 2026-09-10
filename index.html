@@ -107,34 +107,33 @@ a:hover { color: var(--moss); }
 .popup-card img {
   display: block;
   width: 100%;
-  height: 130px;
+  height: 90px;
   object-fit: cover;
 }
 .popup-body {
-  padding: 12px 14px 14px;
+  padding: 10px 12px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 .popup-name {
   font-weight: bold;
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   line-height: 1.2;
   margin: 0;
   color: var(--pine);
 }
 .popup-snippet {
-  margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.4;
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  line-height: 1.35;
   color: var(--ink-soft);
   display: -webkit-box;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .popup-link {
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   font-weight: bold;
   color: var(--moss);
   text-decoration: none;
@@ -605,8 +604,8 @@ function renderMarkers(forests) {
     });
     const marker = L.marker([forest.lat, forest.lng], { icon }).addTo(map);
     marker.bindPopup(buildPopupCard(forest, i), {
-      maxWidth: 380,
-      minWidth: 340,
+      maxWidth: 200,
+      minWidth: 200,
       className: "forest-popup"
     });
     marker.on("popupopen", () => {
@@ -626,7 +625,7 @@ function buildPopupCard(forest, i) {
       ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" onerror="this.remove()">` : ""}
       <div class="popup-body">
         <p class="popup-name">${escapeHtml(forest.name)}</p>
-        <p class="popup-snippet">${escapeHtml(truncate(forest.description, 220))}</p>
+        <p class="popup-snippet">${escapeHtml(truncate(forest.description, 70))}</p>
         <a class="popup-link" href="#" data-open="${i}">View details &rarr;</a>
       </div>
     </div>`;
