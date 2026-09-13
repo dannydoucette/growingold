@@ -1,12 +1,12 @@
 Name | Lat, Long | Description | Learn more | Directions | Image paths
 Hemlocks and Hardwoods | 44.442232, -65.253328 | This 5-km loop takes you to a true old-growth hemlock grove, with a boardwalk path to protect undergrowth in the grove. The trees and the air feel heavy here, and there is a sense of magic when the trail turns a corner and opens up into a region, perhaps no more than an hectare in size, dominated by towering, centuries-old hemlocks. | https://novascotia.com/listing/hemlocks-and-hardwoods-trail-kejimkujik-national-park-and-national-historic-site/ | Located inside Kejimkujik national park, follow the signs to the Big Dam parking lot. From there, follow the Hemlocks and Hardwoods trail, which features interpretive signs about the woods you walk through. The old-growth hemlock grove is about 2.5 km from the parking lot. | hemlocks-and-hardwoods.jpg
-The Lone Shieling | 46.809853, -60.733382 | Located just off the road along the Cabot Trail in the Cape Breton Highlands national park is a short trail through a true old-growth hardwood (mostly sugar maple) forest. This is the only part of the Grande Anse Valley -- Nova Scotia's largest unlogged forest -- that can be accessed legally. It is a beautiful trail with high canopies, following along the meandering Grande Anse river. Truly a special place. | https://parks.canada.ca/pn-np/ns/cbreton/activ/randonnee-hiking/loneshieling | Located inside the Cape Breton Highlands national park. Look for the Lone Sheiling parking lot a few kilometers east of Pleasant Bay. | lone-shieling.jpg
+The Lone Shieling | 46.809853, -60.733382 | Located just off the road along the Cabot Trail in the Cape Breton Highlands national park is a short trail through a true old-growth hardwood (mostly sugar maple) forest. This is the only part of the Grande Anse Valley -- Nova Scotia's largest unlogged forest -- that can be accessed legally. It is a beautiful trail with high canopies, following along the meandering Grande Anse river. Truly a special place. | https://parks.canada.ca/pn-np/ns/cbreton/activ/randonnee-hiking/loneshieling | Located inside the Cape Breton Highlands National Park. Look for the Lone Sheiling parking lot a few kilometers east of Pleasant Bay. | lone-shieling.jpg
 Oakfield and Laurie Parks | 
 Hemlock Ravine |
 Sporting Lake |
 Kentville Ravine | 
 Wolfville Watershed | 
-Abraham Lake |
+Abraham Lake | 45.159436802231276, -62.6127046917017 | Sadly, this stand no longer exists. Infestation from the spruce bark beetle in the 2010s left this nature reserve's remarkable stand of old-growth red spruce vulnerable to blowdown during Hurricane Fiona in 2022. Little of the old-growth forest remains, and the once-popular trail has been abandoned. (image taken from Google Maps) | https://novascotia.ca/nse/protectedareas/nr_abrahamlake.asp | This site is no longer worth visiting. | abraham-lake.jpg
 Dollar Lake |
 Panuke Lake |
 Nine Mile | 
