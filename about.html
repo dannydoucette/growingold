@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About old-growth forests | Old-growth forests of Nova Scotia</title>
+<style>
+:root {
+  --pine: #1F3A2E;
+  --pine-dark: #142720;
+  --moss: #4C7A5E;
+  --moss-light: #A9C4B2;
+  --bark: #5B4632;
+  --paper: #F1F3EC;
+  --paper-raised: #FFFFFF;
+  --gold: #B99B4E;
+  --rust: #A6432E;
+  --rust-dark: #832F1F;
+  --ink: #2B2A26;
+  --ink-soft: #5C5A53;
+  --line: #D7DACE;
+
+  --radius: 3px;
+  --shadow: 0 2px 10px rgba(20, 39, 32, 0.12);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+
+h1, h2, h3 { font-family: Arial, Helvetica, sans-serif; margin: 0; }
+
+a { color: var(--pine); }
+a:hover { color: var(--moss); }
+
+/* ---------- Header (identical to index.html) ---------- */
+
+.hero {
+  position: relative;
+  min-height: 40vh;
+  display: flex;
+  align-items: flex-end;
+  background-image: url('images/hemlocks-and-hardwoods.jpg');
+  background-size: cover;
+  background-position: center 65%;
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(20,39,32,0.15) 0%, rgba(20,39,32,0.85) 100%);
+}
+
+.hero-content {
+  position: relative;
+  color: #fff;
+  padding: 32px clamp(20px, 5vw, 64px) 36px;
+  max-width: 640px;
+}
+
+.hero-content h1 {
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.hero-content p {
+  font-size: 1.05rem;
+  color: #E9ECE4;
+  margin: 0;
+}
+
+/* ---------- Page content ---------- */
+
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 44px clamp(20px, 5vw, 48px) 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+}
+
+.prose { max-width: 720px; }
+
+.page-title {
+  font-size: clamp(1.6rem, 3.4vw, 2.1rem);
+  color: var(--pine);
+  margin-bottom: 14px;
+}
+
+.lede {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  color: var(--ink);
+}
+
+.section-title {
+  font-size: 1.45rem;
+  color: var(--pine);
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+  border-bottom: 2px solid var(--pine);
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--moss);
+  margin: 22px 0 8px;
+}
+.subtitle.rust { color: var(--rust); }
+
+.prose p {
+  margin: 0 0 14px;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.prose p:last-child { margin-bottom: 0; }
+
+/* Full-width figure with caption */
+.figure-wide { margin: 0; }
+.figure-wide img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 21 / 9;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+figcaption {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* Image beside text (alternating) */
+.split {
+  display: flex;
+  align-items: center;
+  gap: clamp(24px, 4vw, 48px);
+}
+.split.reverse { flex-direction: row-reverse; }
+.split > img {
+  width: 42%;
+  flex-shrink: 0;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius);
+  display: block;
+}
+.split > .prose { flex: 1; min-width: 0; }
+
+/* Row of small figures */
+.figure-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+.figure-row figure { margin: 0; }
+.figure-row img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: var(--radius);
+}
+
+/* Highlighted aside */
+.callout {
+  margin: 0;
+  padding: 18px 22px;
+  background: var(--paper-raised);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--rust);
+  border-radius: var(--radius);
+  max-width: 720px;
+}
+.callout h3 {
+  font-size: 1.05rem;
+  color: var(--rust);
+  margin-bottom: 6px;
+}
+.callout p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+footer {
+  max-width: 1080px;
+  margin: 40px auto 50px;
+  padding: 20px clamp(20px, 5vw, 48px) 0;
+  border-top: 1px solid var(--line);
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .page { gap: 36px; padding-top: 32px; }
+  .split, .split.reverse { flex-direction: column; align-items: stretch; gap: 16px; }
+  .split > img { width: 100%; aspect-ratio: 16 / 10; }
+  .figure-wide img { aspect-ratio: 16 / 10; }
+  .figure-row { grid-template-columns: 1fr; }
+  .figure-row img { aspect-ratio: 16 / 10; }
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <h1>Old-growth forests of Nova Scotia</h1>
+    <p>A field guide to the province's special forests.</p>
+  </div>
+</header>
+
+<main class="page">
+
+  <!-- Introduction: title + lede -->
+  <section class="prose">
+    <h2 class="page-title">Reading an old forest</h2>
+    <p class="lede">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod
+      tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,
+      quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.</p>
+  </section>
+
+  <!-- Full-width image with caption -->
+  <figure class="figure-wide">
+    <img src="https://placehold.co/1260x540/1F3A2E/F1F3EC?text=Wide+image" alt="Placeholder image">
+    <figcaption>Caption for the wide image goes here. Replace the placeholder with a photo.</figcaption>
+  </figure>
+
+  <!-- Section with title, subtitles, and text -->
+  <section class="prose">
+    <h2 class="section-title">What to look for</h2>
+    <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu
+      fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+      culpa qui officia deserunt mollit anim id est laborum.</p>
+
+    <h3 class="subtitle">Big, old trees</h3>
+    <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium
+      doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore
+      veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+
+    <h3 class="subtitle">Pits and mounds</h3>
+    <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit,
+      sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+
+    <h3 class="subtitle">Layers of life</h3>
+    <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur,
+      adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore.</p>
+  </section>
+
+  <!-- Image beside text -->
+  <section class="split">
+    <img src="https://placehold.co/640x480/4C7A5E/F1F3EC?text=Image+left" alt="Placeholder image">
+    <div class="prose">
+      <h2 class="section-title">A short history</h2>
+      <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit
+        laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure
+        reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.</p>
+      <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis
+        praesentium voluptatum deleniti atque corrupti quos dolores.</p>
+    </div>
+  </section>
+
+  <!-- Row of three small images -->
+  <section>
+    <div class="prose">
+      <h2 class="section-title">Trees of the Acadian forest</h2>
+    </div>
+    <div class="figure-row">
+      <figure>
+        <img src="https://placehold.co/480x480/1F3A2E/F1F3EC?text=Hemlock" alt="Placeholder image">
+        <figcaption>Eastern hemlock</figcaption>
+      </figure>
+      <figure>
+        <img src="https://placehold.co/480x480/4C7A5E/F1F3EC?text=Sugar+maple" alt="Placeholder image">
+        <figcaption>Sugar maple</figcaption>
+      </figure>
+      <figure>
+        <img src="https://placehold.co/480x480/5B4632/F1F3EC?text=Red+spruce" alt="Placeholder image">
+        <figcaption>Red spruce</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- Callout -->
+  <aside class="callout">
+    <h3>Did you know?</h3>
+    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+      incididunt ut labore et dolore magna aliqua. Replace this with a short, memorable fact.</p>
+  </aside>
+
+  <!-- Image beside text, reversed -->
+  <section class="split reverse">
+    <img src="https://placehold.co/640x480/A6432E/F1F3EC?text=Image+right" alt="Placeholder image">
+    <div class="prose">
+      <h2 class="section-title">Visiting with care</h2>
+      <h3 class="subtitle rust">Stay on the trail</h3>
+      <p>Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus
+        saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.</p>
+      <h3 class="subtitle rust">Leave no trace</h3>
+      <p>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis
+        voluptatibus maiores alias consequatur aut perferendis doloribus asperiores.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <p>Suggestions or corrections will be welcomed. <a href="mailto:danny.doucette@gmail.com">Get in touch</a>.</p>
+</footer>
+
+</body>
+</html>
