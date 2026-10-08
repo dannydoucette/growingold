@@ -890,7 +890,7 @@ function renderList(forests) {
 
     const section = document.createElement("details");
     section.className = `forest-group category-${group.key}`;
-    if (group.key === "old-growth") section.open = true;
+    if (group.key === "old-growth") section.open = false;
     section.innerHTML = `
       <summary class="group-title">
         <span class="group-title-text">${escapeHtml(group.title)}</span>
