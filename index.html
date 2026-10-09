@@ -901,7 +901,7 @@ function openDetail(forest) {
   content.innerHTML = `
     ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" onerror="this.remove()">` : ""}
     <h2>${escapeHtml(forest.name)}</h2>
-    <p>${escapeHtml(forest.description)}</p>
+    <p>${forest.description}</p>
     ${forest.minimal ? "" : `
     ${forest.directions ? `<h4>Getting there</h4><p>${escapeHtml(forest.directions)}</p>` : ""}
     <div class="detail-actions">
