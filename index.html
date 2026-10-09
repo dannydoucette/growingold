@@ -878,7 +878,7 @@ function renderList(forests) {
       card.innerHTML = `
         ${forest.image ? `<img src="${forest.image}" alt="${escapeHtml(forest.name)}" loading="lazy" onerror="this.remove()">` : ""}
         <h3>${escapeHtml(forest.name)}</h3>
-        <p>${escapeHtml(forest.description)}</p>
+        <p>${forest.description}</p>
         <span class="card-link">${forest.minimal ? "View details" : "View details &amp; directions"} &rarr;</span>
       `;
       card.addEventListener("click", () => {
